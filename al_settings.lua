@@ -8,8 +8,8 @@ local plugin_dir = require("libs/libkoreader-lfs").currentdir() .. "/plugins/aug
 local creds_file = plugin_dir .. "/al_credentials.lua"
 
 local DEFAULT_MODELS = {
-    { display = "Groq Llama 3 70B", api_key = "your_api_key_here" },
-    { display = "OpenRouter owl-alpha", api_key = "your_api_key_here" },
+    { display = "Groq Llama 3 70B", api_key = "COLOQUE_SUA_CHAVE_AQUI", model = "llama-3.3-70b-versatile" },
+    { display = "OpenRouter owl-alpha", api_key = "COLOQUE_SUA_CHAVE_AQUI", model = "openrouter/owl-alpha" },
 }
 
 function AL_Settings.loadModels()
@@ -58,7 +58,7 @@ function AL_Settings.saveActiveIndex(models, active_idx)
         f:write("return {\n")
         f:write("  active_idx = " .. tostring(saved_data.active_idx) .. ",\n")
         f:write("  models = {\n")
-        for _, m in ipairs(saved_data.models) do
+        for idx, m in ipairs(saved_data.models) do
             f:write(string.format('    { display = %q, api_key = %q, model = %q },\n', m.display or "", m.api_key or "", m.model or ""))
         end
         f:write("  },\n")
@@ -138,6 +138,8 @@ function AL_Settings.getQuizConfig()
     local config = saved_data and saved_data.quiz_config or {}
     
     config.quiz_amount = config.quiz_amount or 5
+    config.interface_language = config.interface_language or "Auto"
+    config.answer_language = config.answer_language or "Auto"
     
     -- Migrate from string to table if necessary, or set defaults
     if type(config.quiz_types) ~= "table" then
@@ -184,12 +186,14 @@ function AL_Settings.saveQuizConfig(config)
         f:write("return {\n")
         f:write("  active_idx = " .. tostring(saved_data.active_idx) .. ",\n")
         f:write("  models = {\n")
-        for _, m in ipairs(saved_data.models) do
+        for idx, m in ipairs(saved_data.models) do
             f:write(string.format('    { display = %q, api_key = %q, model = %q },\n', m.display or "", m.api_key or "", m.model or ""))
         end
         f:write("  },\n")
         f:write("  quiz_config = {\n")
         f:write(string.format('    quiz_amount = %d,\n', config.quiz_amount or 5))
+        f:write(string.format('    interface_language = %q,\n', config.interface_language or "Auto"))
+        f:write(string.format('    answer_language = %q,\n', config.answer_language or "Auto"))
         f:write("    quiz_types = {\n")
         for k, v in pairs(config.quiz_types or {}) do
             f:write(string.format('      [%q] = %s,\n', k, tostring(v)))
@@ -211,17 +215,19 @@ function AL_Settings.showQuizConfig(on_change)
     
     local types_order = {"Múltipla Escolha", "Verdadeiro/Falso", "Discursiva"}
     local diffs_order = {"Fácil", "Média", "Difícil"}
+    local interface_langs = {"Auto", "en", "pt", "es"}
+    local answer_langs = {"Auto", "Português", "English", "Español", "Français", "Deutsch", "Italiano"}
     
     local dialog
     local function refreshDialog()
         local type_buttons = {}
-        for _, t in ipairs(types_order) do
+        for idx, t in ipairs(types_order) do
             table.insert(type_buttons, {
                 text = (config.quiz_types[t] and "✓ " or "") .. _(t),
                 callback = function()
                     config.quiz_types[t] = not config.quiz_types[t]
                     local any = false
-                    for _, v in pairs(config.quiz_types) do if v then any = true break end end
+                    for idx, v in pairs(config.quiz_types) do if v then any = true break end end
                     if not any then config.quiz_types[t] = true end
                     UIManager:close(dialog)
                     refreshDialog()
@@ -230,13 +236,13 @@ function AL_Settings.showQuizConfig(on_change)
         end
 
         local diff_buttons = {}
-        for _, d in ipairs(diffs_order) do
+        for idx, d in ipairs(diffs_order) do
             table.insert(diff_buttons, {
                 text = (config.quiz_difficulties[d] and "✓ " or "") .. _(d),
                 callback = function()
                     config.quiz_difficulties[d] = not config.quiz_difficulties[d]
                     local any = false
-                    for _, v in pairs(config.quiz_difficulties) do if v then any = true break end end
+                    for idx, v in pairs(config.quiz_difficulties) do if v then any = true break end end
                     if not any then config.quiz_difficulties[d] = true end
                     UIManager:close(dialog)
                     refreshDialog()
@@ -268,9 +274,45 @@ function AL_Settings.showQuizConfig(on_change)
             diff_buttons,
             {
                 {
+                    text = _("Interface") .. ": " .. _(config.interface_language),
+                    callback = function()
+                        UIManager:close(dialog)
+                        local lang_buttons = {}
+                        local subdialog
+                        for idx, l in ipairs(interface_langs) do
+                            table.insert(lang_buttons, {
+                                { text = (config.interface_language == l and "✓ " or "") .. _(l), callback = function() config.interface_language = l; UIManager:close(subdialog); refreshDialog() end }
+                            })
+                        end
+                        table.insert(lang_buttons, { { text = _("Voltar"), callback = function() UIManager:close(subdialog); refreshDialog() end } })
+                        subdialog = ButtonDialog:new{ title = _("Interface"), title_align = "center", buttons = lang_buttons }
+                        UIManager:show(subdialog)
+                    end
+                },
+                {
+                    text = _("Respostas") .. ": " .. _(config.answer_language),
+                    callback = function()
+                        UIManager:close(dialog)
+                        local lang_buttons = {}
+                        local subdialog
+                        for idx, l in ipairs(answer_langs) do
+                            table.insert(lang_buttons, {
+                                { text = (config.answer_language == l and "✓ " or "") .. _(l), callback = function() config.answer_language = l; UIManager:close(subdialog); refreshDialog() end }
+                            })
+                        end
+                        table.insert(lang_buttons, { { text = _("Voltar"), callback = function() UIManager:close(subdialog); refreshDialog() end } })
+                        subdialog = ButtonDialog:new{ title = _("Respostas"), title_align = "center", buttons = lang_buttons }
+                        UIManager:show(subdialog)
+                    end
+                }
+            },
+            {
+                {
                     text = _("Voltar"),
                     font_bold = true,
                     callback = function()
+                        local I18N = require("al_i18n")
+                        I18N.setLang(config.interface_language)
                         AL_Settings.saveQuizConfig(config)
                         UIManager:close(dialog)
                         if on_change then on_change() end

@@ -17,8 +17,8 @@ local AL_HistoryUI = require("al_history_ui")
 
 local AugmentedLearning = Widget:extend{
     name = "augmentedlearning",
-    api_key = "your_api_key_here", -- Default to provided Groq key
-    model = "groq/llama-3.3-70b-versatile",
+    api_key = "COLOQUE_SUA_CHAVE_AQUI", -- Default to provided Groq key
+    model = "llama-3.3-70b-versatile",
 }
 
 function AugmentedLearning:init()
@@ -187,7 +187,7 @@ function AugmentedLearning:onAugmentedLearningMenu()
         buttons = {
             {
                 {
-                    text = "Quiz",
+                    text = _("Quiz"),
                     callback = function()
                         UIManager:close(dialog)
                         AL_ContextUI.showExtractorDialog(self.ui, function(text, custom_meta)
@@ -202,7 +202,7 @@ function AugmentedLearning:onAugmentedLearningMenu()
             },
             {
                 {
-                    text = "Pré-Questões",
+                    text = _("Pré-questões"),
                     callback = function()
                         UIManager:close(dialog)
                         AL_ContextUI.showExtractorDialog(self.ui, function(text, custom_meta)
@@ -252,6 +252,16 @@ function AugmentedLearning:onAugmentedLearningMenu()
         title_align = "center",
     }
     UIManager:show(dialog)
+end
+
+function AugmentedLearning:addToMainMenu(menu_items)
+    menu_items["augmentedlearning"] = {
+        text = "Augmented Learning",
+        sorting_hint = "tools",
+        callback = function()
+            self:onAugmentedLearningMenu()
+        end,
+    }
 end
 
 return AugmentedLearning

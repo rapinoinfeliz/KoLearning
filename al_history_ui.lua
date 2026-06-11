@@ -13,7 +13,7 @@ function AL_HistoryUI.show(ui, on_close)
     local books = {}
     local book_list = {}
     
-    for _, item in ipairs(history_list) do
+    for idx, item in ipairs(history_list) do
         local meta = item.metadata or {}
         local book_title = meta.book_title and meta.book_title ~= _("Desconhecido") and meta.book_title or _("Outros/Sem Título")
         if not books[book_title] then
@@ -29,7 +29,7 @@ function AL_HistoryUI.show(ui, on_close)
     if #book_list == 0 then
         table.insert(buttons, { { text = _("Nenhum histórico encontrado."), enabled = false } })
     else
-        for _, book_title in ipairs(book_list) do
+        for idx, book_title in ipairs(book_list) do
             local count = #books[book_title]
             table.insert(buttons, {
                 {
@@ -43,7 +43,7 @@ function AL_HistoryUI.show(ui, on_close)
                         UIManager:show(ConfirmBox:new{
                             text = _("Deseja excluir TODOS os ") .. count .. _(" itens de '") .. book_title .. _("'?"),
                             ok_callback = function()
-                                for _, item in ipairs(books[book_title]) do
+                                for idx, item in ipairs(books[book_title]) do
                                     AL_History.deleteProgress(item.id)
                                 end
                                 UIManager:show(InfoMessage:new{ text = count .. _(" itens excluídos"), timeout = 2 })
@@ -82,7 +82,7 @@ function AL_HistoryUI.showBookItems(ui, book_title, items, on_close)
     local buttons = {}
     local dialog
     
-    for _, item in ipairs(items) do
+    for idx, item in ipairs(items) do
         local meta = item.metadata or {}
         local date_str = meta.timestamp and os.date("%d/%m %H:%M", meta.timestamp) or _("Desconhecido")
         local type_str = meta.type or _("Quiz")

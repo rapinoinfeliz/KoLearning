@@ -1,7 +1,12 @@
 local AL_Prompts = {}
 
 function AL_Prompts.getPreQuestionsSystemPrompt(config)
-    return [[
+    local lang_instruction = "The questions MUST be in the same language as the text (usually Portuguese)."
+    if config and config.answer_language and config.answer_language ~= "Auto" then
+        lang_instruction = "The questions MUST be generated in the following language: " .. config.answer_language .. ". Translate and formulate EVERYTHING in this target language."
+    end
+
+    return string.format([[
 You are an expert tutor designing pre-reading questions using principles from active learning, desirable difficulty, and curiosity-driven learning.
 Based on the provided text, generate exactly 5 highly effective pre-questions.
 
@@ -31,7 +36,7 @@ Generate exactly 5 questions following these distinct lenses:
 5. Encourages the reader to consider a practical application or a broader implication of the core concept.
 
 RULES:
-1. The questions MUST be in the same language as the text (usually Portuguese).
+1. %s
 2. Avoid generic reflection questions that could apply to almost any book.
 3. Avoid merely rephrasing the title or thesis of the text.
 4. Avoid yes/no questions.
@@ -54,7 +59,7 @@ RULES:
   }
 ]
 DO NOT include any markdown blocks, introduction, or conclusion. Just the raw JSON array.
-]]
+]], lang_instruction)
 end
 
 function AL_Prompts.getQuizSystemPrompt(config)
@@ -78,6 +83,11 @@ function AL_Prompts.getQuizSystemPrompt(config)
     
     local type_instruction = "Distribute questions across these types: " .. table.concat(active_types, ", ") .. ".\n"
     type_instruction = type_instruction .. "4. Do NOT include any other question types."
+
+    local lang_instruction = "The questions MUST be in the same language as the text (usually Portuguese)."
+    if config and config.answer_language and config.answer_language ~= "Auto" then
+        lang_instruction = "The questions MUST be generated in the following language: " .. config.answer_language .. ". Translate and formulate EVERYTHING in this target language."
+    end
     
     local schema_parts = {}
     for _, t in ipairs(active_types) do
@@ -151,7 +161,7 @@ GENRE ADAPTATION
 
 TECHNICAL RULES AND FORMATTING
 1. Generate exactly %d questions.
-2. The questions MUST be in the same language as the text (usually Portuguese).
+2. %s
 3. The difficulty levels should span: %s.
 4. %s
 5. Provide a clear "explanation" for why the answer is correct or what the key concept is.
@@ -159,7 +169,7 @@ TECHNICAL RULES AND FORMATTING
 
 Output STRICTLY JSON following this schema:
 %s
-]], amount, diff, type_instruction, schema)
+]], amount, lang_instruction, diff, type_instruction, schema)
 end
 
 return AL_Prompts

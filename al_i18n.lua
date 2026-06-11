@@ -1,13 +1,23 @@
 local Device = require("device")
 
-local I18N = {}
+local I18N = {
+    current_lang = nil
+}
 
--- Retrieve current language from KOReader settings
-local lang = "en"
-if G_reader_settings then
-    lang = G_reader_settings:readSetting("language") or "en"
+function I18N.setLang(l)
+    I18N.current_lang = l
 end
-lang = lang:sub(1, 2) -- e.g., "pt", "es", "en"
+
+function I18N.getLang()
+    if I18N.current_lang and I18N.current_lang ~= "Auto" then
+        return I18N.current_lang
+    end
+    local lang = "en"
+    if G_reader_settings then
+        lang = G_reader_settings:readSetting("language") or "en"
+    end
+    return lang:sub(1, 2)
+end
 
 local strings = {
     ["pt"] = {
@@ -82,6 +92,17 @@ local strings = {
         ["Selecionar Capítulo"] = "Selecionar Capítulo",
         ["Extrair Texto"] = "Extrair Texto",
         ["Modelos / API"] = "Modelos / API",
+        ["Modelo: "] = "Modelo: ",
+        ["Arquivo"] = "Arquivo",
+        ["Interface"] = "Interface",
+        ["Respostas"] = "Respostas",
+        ["Auto"] = "Automático",
+        ["Português"] = "Português",
+        ["English"] = "English",
+        ["Español"] = "Español",
+        ["Français"] = "Français",
+        ["Deutsch"] = "Deutsch",
+        ["Italiano"] = "Italiano",
     },
     ["es"] = {
         ["Configurações"] = "Configuraciones",
@@ -108,7 +129,7 @@ local strings = {
         ["Gerando Quiz da Seção..."] = "Generando Cuestionario de la Sección...",
         ["Quiz"] = "Cuestionario",
         ["Já existe um quiz para este trecho.\nO que deseja fazer?"] = "Ya existe un cuestionario para este pasaje.\n¿Qué deseas hacer?",
-        ["Augmented Learning: Abrir Menu"] = "Aprendizaje Aumentado: Abrir Menú",
+        ["Augmented Learning: Abrir Menu"] = "Augmented Learning: Abrir Menú",
         ["Gerar Quiz (Múltipla Escolha)"] = "Generar Cuestionario (Opción Múltiple)",
         ["Gerar Pré-questões"] = "Generar Pre-preguntas",
         ["Arquivo (Histórico)"] = "Archivo (Historial)",
@@ -155,6 +176,17 @@ local strings = {
         ["Selecionar Capítulo"] = "Seleccionar Capítulo",
         ["Extrair Texto"] = "Extraer Texto",
         ["Modelos / API"] = "Modelos / API",
+        ["Modelo: "] = "Modelo: ",
+        ["Arquivo"] = "Archivo",
+        ["Interface"] = "Interfaz",
+        ["Respostas"] = "Respuestas",
+        ["Auto"] = "Automático",
+        ["Português"] = "Português",
+        ["English"] = "English",
+        ["Español"] = "Español",
+        ["Français"] = "Français",
+        ["Deutsch"] = "Deutsch",
+        ["Italiano"] = "Italiano",
     },
     ["en"] = {
         ["Configurações"] = "Settings",
@@ -228,11 +260,22 @@ local strings = {
         ["Selecionar Capítulo"] = "Select Chapter",
         ["Extrair Texto"] = "Extract Text",
         ["Modelos / API"] = "Models / API",
+        ["Modelo: "] = "Model: ",
+        ["Arquivo"] = "Library",
+        ["Interface"] = "Interface",
+        ["Respostas"] = "Answers",
+        ["Auto"] = "Auto",
+        ["Português"] = "Português",
+        ["English"] = "English",
+        ["Español"] = "Español",
+        ["Français"] = "Français",
+        ["Deutsch"] = "Deutsch",
+        ["Italiano"] = "Italiano",
     }
 }
 
 function I18N.t(str, ...)
-    local l = lang
+    local l = I18N.getLang()
     if not strings[l] then l = "en" end
     
     local translated = str
